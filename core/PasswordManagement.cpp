@@ -80,51 +80,72 @@ namespace pwm {
         /// <param name="obj">検索条件</param>
         /// <returns></returns>
         std::u8string getWhereStr(const GetParam& obj) {
+            std::vector<std::u8string> where_list;
             std::u8string where_str;
+
             if (obj.name) {
                 // nameが指定されたときは他の条件をすべて無視する
                 where_str += pws::c_name::value;
                 where_str += u8"=?";
+                where_list.emplace_back(where_str);
+                where_str.clear();
             }
             else {
                 if (obj.service) {
                     where_str += pws::c_service::value;
                     where_str += u8"=?";
+                    where_list.emplace_back(where_str);
+                    where_str.clear();
                 }
                 if (obj.user) {
                     where_str += pws::c_user::value;
                     where_str += u8"=?";
+                    where_list.emplace_back(where_str);
+                    where_str.clear();
                 }
                 if (obj.begin_registered_at) {
                     if (obj.end_registered_at) {
                         where_str += pws::c_registered_at::value;
                         where_str += u8" BETWEEN ? AND ?";
+                        where_list.emplace_back(where_str);
+                        where_str.clear();
                     }
                     else {
                         where_str += pws::c_registered_at::value;
                         where_str += u8">=?";
+                        where_list.emplace_back(where_str);
+                        where_str.clear();
                     }
                 }
                 else if (obj.end_registered_at) {
                     where_str += pws::c_registered_at::value;
                     where_str += u8"<=?";
+                    where_list.emplace_back(where_str);
+                    where_str.clear();
                 }
                 if (obj.begin_update_at) {
                     if (obj.end_update_at) {
                         where_str += pws::c_update_at::value;
                         where_str += u8" BETWEEN ? AND ?";
+                        where_list.emplace_back(where_str);
+                        where_str.clear();
                     }
                     else {
                         where_str += pws::c_update_at::value;
                         where_str += u8">=?";
+                        where_list.emplace_back(where_str);
+                        where_str.clear();
                     }
                 }
                 else if (obj.end_update_at) {
                     where_str += pws::c_update_at::value;
                     where_str += u8"<=?";
+                    where_list.emplace_back(where_str);
+                    where_str.clear();
                 }
             }
-            return where_str.length() == 0 ? u8"" : (u8"WHERE " + where_str);
+            using namespace std::ranges;
+            return where_list.size() == 0 ? u8"" : (u8"WHERE " + (where_list | views::join_with(std::u8string_view{ u8" AND " }) | to<std::u8string>()));
         }
 
         /// <summary>
